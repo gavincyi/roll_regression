@@ -45,13 +45,15 @@ jobs:
           pip install build wheel setuptools setuptools-rust
 
       - name: Build wheels
-        run: python -m build
+        run: python -m build --wheel --no-isolation
 
       - name: Store wheels
         uses: actions/upload-artifact@v3
         with:
           name: wheels-${{ matrix.os }}-${{ matrix.python-version }}
-          path: dist/*.whl
+          path: |
+            dist/*.whl
+            !dist/*-none-any.whl  # Exclude pure Python wheels
 
   publish:
     needs: build_wheels
@@ -74,7 +76,7 @@ jobs:
       - name: Move wheels to dist
         run: |
           mkdir -p dist_final
-          find dist -name "*.whl" -exec mv {} dist_final/ \;
+          find dist -name "*.whl" -type f -exec mv {} dist_final/ \;
 
       - name: List files to upload
         run: |
