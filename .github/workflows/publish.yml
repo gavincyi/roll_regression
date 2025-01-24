@@ -76,6 +76,11 @@ jobs:
           mkdir -p dist_final
           find dist -name "*.whl" -exec mv {} dist_final/ \;
 
+      - name: List files to upload
+        run: |
+          echo "Files to be uploaded:"
+          ls -l dist_final/
+
       - name: Install twine
         run: pip install twine
 
@@ -84,6 +89,14 @@ jobs:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
         run: |
+          echo "Checking files with twine..."
+          twine check dist_final/*
+          
+          echo "Files to be uploaded:"
+          for file in dist_final/*; do
+            echo "  - $(basename $file)"
+          done
+          
           if [ "${{ github.event.inputs.force }}" = "true" ]; then
             echo "Force publishing..."
             python -m twine upload --skip-existing dist_final/*
