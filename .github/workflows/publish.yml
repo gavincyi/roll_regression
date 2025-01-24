@@ -10,6 +10,11 @@ on:
         description: 'Version to release (e.g., v0.1.0)'
         required: true
         type: string
+      force:
+        description: 'Force publish even if version exists'
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -79,7 +84,13 @@ jobs:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
         run: |
-          python -m twine upload dist_final/*
+          if [ "${{ github.event.inputs.force }}" = "true" ]; then
+            echo "Force publishing..."
+            python -m twine upload --skip-existing dist_final/*
+          else
+            echo "Normal publishing..."
+            python -m twine upload dist_final/*
+          fi
 
   create_release:
     needs: publish
