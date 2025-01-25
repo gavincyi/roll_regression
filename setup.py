@@ -29,7 +29,7 @@ test_requirements = [
 
 setup(
     name='roll_regression',
-    version='0.4.0',
+    version='0.5.0',
     description="A fast rolling regression library in Python",
     long_description=readme + '\n\n' + history,
     author="Gavin Chan",
