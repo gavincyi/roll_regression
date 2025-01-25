@@ -29,17 +29,17 @@ test_requirements = [
 
 setup(
     name='roll_regression',
-    version='0.2.0',
+    version='0.3.0',
     description="A fast rolling regression library in Python",
     long_description=readme + '\n\n' + history,
     author="Gavin Chan",
     author_email='gavincyi@gmail.com',
     url='https://github.com/gavincyi/roll_regression',
-    packages=[
-        'roll_regression',
-    ],
-    package_dir={'roll_regression':
-                 'roll_regression'},
+    packages=['roll_regression'],
+    package_dir={'roll_regression': 'roll_regression'},
+    package_data={
+        'roll_regression': ['*.dll', '*.so', '*.dylib'],  # Include compiled libraries
+    },
     include_package_data=True,
     install_requires=requirements,
     license="MIT license",
@@ -63,7 +63,5 @@ setup(
     ],
     test_suite='tests',
     tests_require=test_requirements,
-    setup_requires=['setuptools_rust',
-    'pytest-runner>=2.0',
-    ]
+    setup_requires=['setuptools-rust>=1.5.2', 'wheel>=0.42.0', 'cffi>=1.0.0']
 )
