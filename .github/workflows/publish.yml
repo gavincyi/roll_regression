@@ -156,7 +156,7 @@ jobs:
 
       - name: Move wheels to dist
         run: |
-          mkdir -p dist_final
+          mkdir -p dist_final || true
           find dist -type f -name "*.whl" ! -name "*none-any.whl" -exec mv {} dist_final/ \;
           
           echo "Contents of dist_final:"
