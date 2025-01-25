@@ -93,18 +93,40 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
         with:
-          targets: i686-pc-windows-msvc  # Add 32-bit Windows target
+          targets: ${{ matrix.rust-target }}
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install build wheel setuptools setuptools-rust cffi
 
-      - name: Build wheels
+      - name: Build Rust Binary (Windows)
+        if: runner.os == 'Windows'
         run: |
-          pip install cffi  # Ensure CFFI is available during build
-          # Build platform-specific wheel
-          python -m build --wheel
+          cd roll_regression/rust
+          cargo build --release --target ${{ matrix.rust-target }}
+          cd ../..
+          # Create directories if they don't exist
+          mkdir -p roll_regression/rust/target/release
+          # Copy the DLL to both locations
+          Copy-Item "roll_regression/rust/target/${{ matrix.rust-target }}/release/*.dll" -Destination "roll_regression/rust/target/release/"
+          Copy-Item "roll_regression/rust/target/${{ matrix.rust-target }}/release/*.dll" -Destination "roll_regression/"
+          # List files for debugging
+          echo "Contents of roll_regression/rust/target/release:"
+          Get-ChildItem roll_regression/rust/target/release
+          echo "Contents of roll_regression:"
+          Get-ChildItem roll_regression
+
+      - name: Build wheels
+        env:
+          CARGO_TARGET_DIR: "./target"
+          RUSTFLAGS: "-C target-feature=+crt-static"
+        run: |
+          # Build wheel
+          python setup.py bdist_wheel
+          # List contents for debugging
+          echo "Contents of dist directory:"
+          Get-ChildItem dist
 
       - name: Store wheels
         uses: actions/upload-artifact@v3
