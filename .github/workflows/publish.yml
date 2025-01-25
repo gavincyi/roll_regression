@@ -80,11 +80,6 @@ jobs:
           # Build platform-specific wheel
           pip wheel --no-deps -w dist/ .
 
-      - name: List built wheels
-        run: |
-          echo "Contents of dist directory:"
-          ls -la dist/
-
       - name: Store wheels
         uses: actions/upload-artifact@v3
         with:
