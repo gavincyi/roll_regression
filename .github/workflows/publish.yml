@@ -78,7 +78,7 @@ jobs:
         run: |
           pip install cffi  # Ensure CFFI is available during build
           # Build platform-specific wheel
-          pip wheel --no-deps -w dist/ .
+          python -m build --wheel
 
       - name: Store wheels
         uses: actions/upload-artifact@v3
