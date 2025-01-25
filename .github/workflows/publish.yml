@@ -42,10 +42,12 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install build wheel setuptools setuptools-rust
+          pip install build wheel setuptools setuptools-rust cffi
 
       - name: Build wheels
-        run: python -m build --wheel --no-isolation
+        run: |
+          pip install cffi  # Ensure CFFI is available during build
+          python -m build --wheel --no-isolation
 
       - name: Store wheels
         uses: actions/upload-artifact@v3
@@ -76,7 +78,7 @@ jobs:
       - name: Move wheels to dist
         run: |
           mkdir -p dist_final
-          find dist -name "*.whl" -type f -exec mv {} dist_final/ \;
+          find dist -name "*.whl" -exec mv {} dist_final/ \;
 
       - name: List files to upload
         run: |
