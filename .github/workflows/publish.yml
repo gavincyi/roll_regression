@@ -47,7 +47,15 @@ jobs:
       - name: Build wheels
         run: |
           pip install cffi  # Ensure CFFI is available during build
-          python -m build --wheel --no-isolation
+          # Clean any existing builds
+          rm -rf dist/ build/ *.egg-info/
+          # Build platform-specific wheel
+          pip wheel --no-deps -w dist/ .
+
+      - name: List built wheels
+        run: |
+          echo "Contents of dist directory:"
+          ls -la dist/
 
       - name: Store wheels
         uses: actions/upload-artifact@v3
