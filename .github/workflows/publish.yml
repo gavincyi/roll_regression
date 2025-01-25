@@ -29,22 +29,48 @@ jobs:
         python-version: ['3.8', '3.9', '3.10', '3.11', '3.12']
         architecture: [x64]
         include:
-          # Add Windows 32-bit builds
+          # Windows AMD64 (64-bit) builds
+          - os: windows-latest
+            python-version: '3.8'
+            architecture: x64
+            rust-target: x86_64-pc-windows-msvc
+          - os: windows-latest
+            python-version: '3.9'
+            architecture: x64
+            rust-target: x86_64-pc-windows-msvc
+          - os: windows-latest
+            python-version: '3.10'
+            architecture: x64
+            rust-target: x86_64-pc-windows-msvc
+          - os: windows-latest
+            python-version: '3.11'
+            architecture: x64
+            rust-target: x86_64-pc-windows-msvc
+          - os: windows-latest
+            python-version: '3.12'
+            architecture: x64
+            rust-target: x86_64-pc-windows-msvc
+          # Windows x86 (32-bit) builds
           - os: windows-latest
             python-version: '3.8'
             architecture: x86
+            rust-target: i686-pc-windows-msvc
           - os: windows-latest
             python-version: '3.9'
             architecture: x86
+            rust-target: i686-pc-windows-msvc
           - os: windows-latest
             python-version: '3.10'
             architecture: x86
+            rust-target: i686-pc-windows-msvc
           - os: windows-latest
             python-version: '3.11'
             architecture: x86
+            rust-target: i686-pc-windows-msvc
           - os: windows-latest
             python-version: '3.12'
             architecture: x86
+            rust-target: i686-pc-windows-msvc
 
     steps:
       - uses: actions/checkout@v4
