@@ -49,6 +49,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install macOS dependencies
+        if: runner.os == 'macOS'
+        run: |
+          brew install gettext
+          brew link gettext --force
+
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
