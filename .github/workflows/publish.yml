@@ -77,8 +77,6 @@ jobs:
       - name: Build wheels
         run: |
           pip install cffi  # Ensure CFFI is available during build
-          # Clean any existing builds
-          rm -rf dist/ build/ *.egg-info/
           # Build platform-specific wheel
           pip wheel --no-deps -w dist/ .
 
