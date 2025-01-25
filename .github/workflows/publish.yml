@@ -78,12 +78,10 @@ jobs:
       - name: Move wheels to dist
         run: |
           mkdir -p dist_final
-          find dist -name "*.whl" -exec mv {} dist_final/ \;
-
-      - name: List files to upload
-        run: |
-          echo "Files to be uploaded:"
-          ls -l dist_final/
+          find dist -type f -name "*.whl" ! -name "*none-any.whl" -exec mv {} dist_final/ \;
+          
+          echo "Contents of dist_final:"
+          ls -la dist_final/
 
       - name: Install twine
         run: pip install twine
