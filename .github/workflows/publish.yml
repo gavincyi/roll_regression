@@ -68,51 +68,49 @@ jobs:
           #   architecture: x86
           #   rust-target: i686-pc-windows-msvc
           # macOS builds
-          - os: macos-latest
-            python-version: '3.8'
-            architecture: x64
-            rust-target: x86_64-apple-darwin
-          - os: macos-latest
-            python-version: '3.9'
-            architecture: x64
-            rust-target: x86_64-apple-darwin
-          - os: macos-latest
-            python-version: '3.10'
-            architecture: x64
-            rust-target: x86_64-apple-darwin
-          - os: macos-latest
-            python-version: '3.11'
-            architecture: x64
-            rust-target: x86_64-apple-darwin
-          - os: macos-latest
-            python-version: '3.12'
-            architecture: x64
-            rust-target: x86_64-apple-darwin
-          # # Linux builds
-          # - os: ubuntu-latest
+          # - os: macos-latest
           #   python-version: '3.8'
           #   architecture: x64
-          #   rust-target: x86_64-unknown-linux-gnu
-          # - os: ubuntu-latest
+          #   rust-target: x86_64-apple-darwin
+          # - os: macos-latest
           #   python-version: '3.9'
           #   architecture: x64
-          #   rust-target: x86_64-unknown-linux-gnu
-          # - os: ubuntu-latest
+          #   rust-target: x86_64-apple-darwin
+          # - os: macos-latest
           #   python-version: '3.10'
           #   architecture: x64
-          #   rust-target: x86_64-unknown-linux-gnu
-          # - os: ubuntu-latest
+          #   rust-target: x86_64-apple-darwin
+          # - os: macos-latest
           #   python-version: '3.11'
           #   architecture: x64
-          #   rust-target: x86_64-unknown-linux-gnu
-          # - os: ubuntu-latest
+          #   rust-target: x86_64-apple-darwin
+          # - os: macos-latest
           #   python-version: '3.12'
           #   architecture: x64
-          #   rust-target: x86_64-unknown-linux-gnu
+          #   rust-target: x86_64-apple-darwin
+          # Linux builds
+          - os: ubuntu-latest
+            python-version: '3.8'
+            architecture: x64
+            rust-target: x86_64-unknown-linux-gnu
+          - os: ubuntu-latest
+            python-version: '3.9'
+            architecture: x64
+            rust-target: x86_64-unknown-linux-gnu
+          - os: ubuntu-latest
+            python-version: '3.10'
+            architecture: x64
+            rust-target: x86_64-unknown-linux-gnu
+          - os: ubuntu-latest
+            python-version: '3.11'
+            architecture: x64
+            rust-target: x86_64-unknown-linux-gnu
+          - os: ubuntu-latest
+            python-version: '3.12'
+            architecture: x64
+            rust-target: x86_64-unknown-linux-gnu
 
     steps:
-      - uses: actions/checkout@v4
-
       - name: Install macOS dependencies
         if: runner.os == 'macOS'
         run: |
@@ -140,6 +138,10 @@ jobs:
           # Set up paths for x86_64 installation
           GETTEXT_PATH="${HOMEBREW_PATH}/opt/gettext"
           
+          # Create symlinks if needed
+          sudo mkdir -p /usr/local/opt/gettext/lib || true
+          sudo ln -sf ${GETTEXT_PATH}/lib/libintl*.dylib /usr/local/opt/gettext/lib/ || true
+          
           # Export library path for dyld
           echo "DYLD_LIBRARY_PATH=${GETTEXT_PATH}/lib:$DYLD_LIBRARY_PATH" >> $GITHUB_ENV
           echo "LDFLAGS=-L${GETTEXT_PATH}/lib" >> $GITHUB_ENV
@@ -147,8 +149,10 @@ jobs:
           echo "${GETTEXT_PATH}/bin" >> $GITHUB_PATH
           echo "ARCHFLAGS=-arch x86_64" >> $GITHUB_ENV
           
-          # Verify installation
+          # Verify installation and symlinks
           echo "Checking gettext installation:"
+          ls -la ${GETTEXT_PATH}/lib/libintl*.dylib || true
+          ls -la /usr/local/opt/gettext/lib/libintl*.dylib || true
           file ${GETTEXT_PATH}/lib/libintl*.dylib || true
           arch -x86_64 brew list gettext || true
           echo "GETTEXT_PATH: ${GETTEXT_PATH}"
