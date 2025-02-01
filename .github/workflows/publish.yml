@@ -116,28 +116,41 @@ jobs:
       - name: Install macOS dependencies
         if: runner.os == 'macOS'
         run: |
-          brew install gettext
-          brew link gettext --force
+          # Uninstall existing gettext to avoid architecture mismatch
+          brew uninstall gettext || true
           
-          # Handle both Intel and Apple Silicon paths
-          if [ -d "/usr/local/opt/gettext" ]; then
-            # Intel Mac
-            GETTEXT_PATH="/usr/local/opt/gettext"
+          # Force x86_64 architecture for Intel Mac runners
+          arch_name="$(uname -m)"
+          if [ "${arch_name}" = "x86_64" ]; then
+              # Running on Intel
+              echo "Running on Intel (x86_64)"
+              HOMEBREW_PATH="/usr/local"
           else
-            # Apple Silicon Mac
-            GETTEXT_PATH="/opt/homebrew/opt/gettext"
+              # Running on Apple Silicon but need x86_64
+              echo "Running on ${arch_name}, forcing x86_64"
+              HOMEBREW_PATH="/usr/local"
+              export ARCHFLAGS="-arch x86_64"
+              export SYSTEM_VERSION_COMPAT=1
           fi
+          
+          # Install gettext with the correct architecture
+          arch -x86_64 brew install gettext
+          arch -x86_64 brew link gettext --force
+          
+          # Set up paths for x86_64 installation
+          GETTEXT_PATH="${HOMEBREW_PATH}/opt/gettext"
           
           # Export library path for dyld
           echo "DYLD_LIBRARY_PATH=${GETTEXT_PATH}/lib:$DYLD_LIBRARY_PATH" >> $GITHUB_ENV
           echo "LDFLAGS=-L${GETTEXT_PATH}/lib" >> $GITHUB_ENV
           echo "CPPFLAGS=-I${GETTEXT_PATH}/include" >> $GITHUB_ENV
           echo "${GETTEXT_PATH}/bin" >> $GITHUB_PATH
+          echo "ARCHFLAGS=-arch x86_64" >> $GITHUB_ENV
           
           # Verify installation
           echo "Checking gettext installation:"
-          ls -l ${GETTEXT_PATH}/lib/libintl*.dylib || true
-          brew list gettext || true
+          file ${GETTEXT_PATH}/lib/libintl*.dylib || true
+          arch -x86_64 brew list gettext || true
           echo "GETTEXT_PATH: ${GETTEXT_PATH}"
 
       - name: Set up Python
