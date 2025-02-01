@@ -26,47 +26,47 @@ jobs:
     strategy:
       matrix:
         include:
-          # Windows builds (32 and 64 bit)
-          - os: windows-latest
-            python-version: '3.8'
-            architecture: x64
-            rust-target: x86_64-pc-windows-msvc
-          - os: windows-latest
-            python-version: '3.9'
-            architecture: x64
-            rust-target: x86_64-pc-windows-msvc
-          - os: windows-latest
-            python-version: '3.10'
-            architecture: x64
-            rust-target: x86_64-pc-windows-msvc
-          - os: windows-latest
-            python-version: '3.11'
-            architecture: x64
-            rust-target: x86_64-pc-windows-msvc
-          - os: windows-latest
-            python-version: '3.12'
-            architecture: x64
-            rust-target: x86_64-pc-windows-msvc
-          - os: windows-latest
-            python-version: '3.8'
-            architecture: x86
-            rust-target: i686-pc-windows-msvc
-          - os: windows-latest
-            python-version: '3.9'
-            architecture: x86
-            rust-target: i686-pc-windows-msvc
-          - os: windows-latest
-            python-version: '3.10'
-            architecture: x86
-            rust-target: i686-pc-windows-msvc
-          - os: windows-latest
-            python-version: '3.11'
-            architecture: x86
-            rust-target: i686-pc-windows-msvc
-          - os: windows-latest
-            python-version: '3.12'
-            architecture: x86
-            rust-target: i686-pc-windows-msvc
+          # # Windows builds (32 and 64 bit)
+          # - os: windows-latest
+          #   python-version: '3.8'
+          #   architecture: x64
+          #   rust-target: x86_64-pc-windows-msvc
+          # - os: windows-latest
+          #   python-version: '3.9'
+          #   architecture: x64
+          #   rust-target: x86_64-pc-windows-msvc
+          # - os: windows-latest
+          #   python-version: '3.10'
+          #   architecture: x64
+          #   rust-target: x86_64-pc-windows-msvc
+          # - os: windows-latest
+          #   python-version: '3.11'
+          #   architecture: x64
+          #   rust-target: x86_64-pc-windows-msvc
+          # - os: windows-latest
+          #   python-version: '3.12'
+          #   architecture: x64
+          #   rust-target: x86_64-pc-windows-msvc
+          # - os: windows-latest
+          #   python-version: '3.8'
+          #   architecture: x86
+          #   rust-target: i686-pc-windows-msvc
+          # - os: windows-latest
+          #   python-version: '3.9'
+          #   architecture: x86
+          #   rust-target: i686-pc-windows-msvc
+          # - os: windows-latest
+          #   python-version: '3.10'
+          #   architecture: x86
+          #   rust-target: i686-pc-windows-msvc
+          # - os: windows-latest
+          #   python-version: '3.11'
+          #   architecture: x86
+          #   rust-target: i686-pc-windows-msvc
+          # - os: windows-latest
+          #   python-version: '3.12'
+          #   architecture: x86
+          #   rust-target: i686-pc-windows-msvc
           # macOS builds
           - os: macos-latest
             python-version: '3.8'
@@ -88,27 +88,27 @@ jobs:
             python-version: '3.12'
             architecture: x64
             rust-target: x86_64-apple-darwin
-          # Linux builds
-          - os: ubuntu-latest
-            python-version: '3.8'
-            architecture: x64
-            rust-target: x86_64-unknown-linux-gnu
-          - os: ubuntu-latest
-            python-version: '3.9'
-            architecture: x64
-            rust-target: x86_64-unknown-linux-gnu
-          - os: ubuntu-latest
-            python-version: '3.10'
-            architecture: x64
-            rust-target: x86_64-unknown-linux-gnu
-          - os: ubuntu-latest
-            python-version: '3.11'
-            architecture: x64
-            rust-target: x86_64-unknown-linux-gnu
-          - os: ubuntu-latest
-            python-version: '3.12'
-            architecture: x64
-            rust-target: x86_64-unknown-linux-gnu
+          # # Linux builds
+          # - os: ubuntu-latest
+          #   python-version: '3.8'
+          #   architecture: x64
+          #   rust-target: x86_64-unknown-linux-gnu
+          # - os: ubuntu-latest
+          #   python-version: '3.9'
+          #   architecture: x64
+          #   rust-target: x86_64-unknown-linux-gnu
+          # - os: ubuntu-latest
+          #   python-version: '3.10'
+          #   architecture: x64
+          #   rust-target: x86_64-unknown-linux-gnu
+          # - os: ubuntu-latest
+          #   python-version: '3.11'
+          #   architecture: x64
+          #   rust-target: x86_64-unknown-linux-gnu
+          # - os: ubuntu-latest
+          #   python-version: '3.12'
+          #   architecture: x64
+          #   rust-target: x86_64-unknown-linux-gnu
 
     steps:
       - uses: actions/checkout@v4
@@ -169,6 +169,19 @@ jobs:
           path: |
             dist/*.whl
             !dist/*-none-any.whl
+
+      - name: Install macOS dependencies
+        if: runner.os == 'macOS'
+        run: |
+          brew install gettext
+          brew link gettext --force
+          # Export library path for dyld
+          echo "DYLD_LIBRARY_PATH=/usr/local/opt/gettext/lib:$DYLD_LIBRARY_PATH" >> $GITHUB_ENV
+          echo "LDFLAGS=-L/usr/local/opt/gettext/lib" >> $GITHUB_ENV
+          echo "CPPFLAGS=-I/usr/local/opt/gettext/include" >> $GITHUB_ENV
+          echo "/usr/local/opt/gettext/bin" >> $GITHUB_PATH
+          # Verify installation
+          ls -l /usr/local/opt/gettext/lib/libintl*.dylib
 
   publish:
     needs: build_wheels
