@@ -188,16 +188,29 @@ jobs:
         if: runner.os != 'Windows'
         run: |
           cd roll_regression/rust
+          echo "Building Rust binary for target: ${{ matrix.rust-target }}"
           cargo build --release --target ${{ matrix.rust-target }}
           cd ../..
+          
+          # Create destination directory
           mkdir -p roll_regression
+          
+          # Debug: Show contents of target directory
+          echo "Contents of target directory before copy:"
+          ls -la roll_regression/rust/target/${{ matrix.rust-target }}/release/
+          
+          # Copy binary files based on OS
           if [ "${{ runner.os }}" = "macOS" ]; then
-            cp roll_regression/rust/target/${{ matrix.rust-target }}/release/*.dylib roll_regression/
+            # macOS: Copy dylib files
+            find roll_regression/rust/target/${{ matrix.rust-target }}/release/ -name "*.dylib" -exec cp {} roll_regression/ \;
           else
-            cp roll_regression/rust/target/${{ matrix.rust-target }}/release/*.so roll_regression/
+            # Linux: Copy so files
+            find roll_regression/rust/target/${{ matrix.rust-target }}/release/ -name "*.so" -exec cp {} roll_regression/ \;
           fi
-          echo "Contents of roll_regression directory:"
-          ls -la roll_regression
+          
+          # Debug: Show contents after copy
+          echo "Contents of roll_regression directory after copy:"
+          ls -la roll_regression/
 
       - name: Build wheels
         env:
