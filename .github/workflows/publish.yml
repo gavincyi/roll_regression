@@ -118,13 +118,27 @@ jobs:
         run: |
           brew install gettext
           brew link gettext --force
+          
+          # Handle both Intel and Apple Silicon paths
+          if [ -d "/usr/local/opt/gettext" ]; then
+            # Intel Mac
+            GETTEXT_PATH="/usr/local/opt/gettext"
+          else
+            # Apple Silicon Mac
+            GETTEXT_PATH="/opt/homebrew/opt/gettext"
+          fi
+          
           # Export library path for dyld
-          echo "DYLD_LIBRARY_PATH=/usr/local/opt/gettext/lib:$DYLD_LIBRARY_PATH" >> $GITHUB_ENV
-          echo "LDFLAGS=-L/usr/local/opt/gettext/lib" >> $GITHUB_ENV
-          echo "CPPFLAGS=-I/usr/local/opt/gettext/include" >> $GITHUB_ENV
-          echo "/usr/local/opt/gettext/bin" >> $GITHUB_PATH
+          echo "DYLD_LIBRARY_PATH=${GETTEXT_PATH}/lib:$DYLD_LIBRARY_PATH" >> $GITHUB_ENV
+          echo "LDFLAGS=-L${GETTEXT_PATH}/lib" >> $GITHUB_ENV
+          echo "CPPFLAGS=-I${GETTEXT_PATH}/include" >> $GITHUB_ENV
+          echo "${GETTEXT_PATH}/bin" >> $GITHUB_PATH
+          
           # Verify installation
-          ls -l /usr/local/opt/gettext/lib/libintl*.dylib
+          echo "Checking gettext installation:"
+          ls -l ${GETTEXT_PATH}/lib/libintl*.dylib || true
+          brew list gettext || true
+          echo "GETTEXT_PATH: ${GETTEXT_PATH}"
 
       - name: Set up Python
         uses: actions/setup-python@v4
