@@ -187,6 +187,19 @@ jobs:
       - name: Build Rust Binary (Unix)
         if: runner.os != 'Windows'
         run: |
+          # Debug: Show current directory and contents
+          echo "Current directory: $(pwd)"
+          echo "Directory contents:"
+          ls -la
+          
+          # Check if rust directory exists
+          if [ ! -d "roll_regression/rust" ]; then
+            echo "Error: roll_regression/rust directory not found"
+            echo "Contents of roll_regression (if exists):"
+            ls -la roll_regression || true
+            exit 1
+          fi
+          
           cd roll_regression/rust
           echo "Building Rust binary for target: ${{ matrix.rust-target }}"
           cargo build --release --target ${{ matrix.rust-target }}
