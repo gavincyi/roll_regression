@@ -113,6 +113,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install macOS dependencies
+        if: runner.os == 'macOS'
+        run: |
+          brew install gettext
+          brew link gettext --force
+          # Export library path for dyld
+          echo "DYLD_LIBRARY_PATH=/usr/local/opt/gettext/lib:$DYLD_LIBRARY_PATH" >> $GITHUB_ENV
+          echo "LDFLAGS=-L/usr/local/opt/gettext/lib" >> $GITHUB_ENV
+          echo "CPPFLAGS=-I/usr/local/opt/gettext/include" >> $GITHUB_ENV
+          echo "/usr/local/opt/gettext/bin" >> $GITHUB_PATH
+          # Verify installation
+          ls -l /usr/local/opt/gettext/lib/libintl*.dylib
+
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
@@ -169,19 +182,6 @@ jobs:
           path: |
             dist/*.whl
             !dist/*-none-any.whl
-
-      - name: Install macOS dependencies
-        if: runner.os == 'macOS'
-        run: |
-          brew install gettext
-          brew link gettext --force
-          # Export library path for dyld
-          echo "DYLD_LIBRARY_PATH=/usr/local/opt/gettext/lib:$DYLD_LIBRARY_PATH" >> $GITHUB_ENV
-          echo "LDFLAGS=-L/usr/local/opt/gettext/lib" >> $GITHUB_ENV
-          echo "CPPFLAGS=-I/usr/local/opt/gettext/include" >> $GITHUB_ENV
-          echo "/usr/local/opt/gettext/bin" >> $GITHUB_PATH
-          # Verify installation
-          ls -l /usr/local/opt/gettext/lib/libintl*.dylib
 
   publish:
     needs: build_wheels
