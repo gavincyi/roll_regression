@@ -25,11 +25,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [windows-latest]
-        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12']
-        architecture: [x64]
         include:
-          # Windows AMD64 (64-bit) builds
+          # Windows builds (32 and 64 bit)
           - os: windows-latest
             python-version: '3.8'
             architecture: x64
@@ -50,7 +47,6 @@ jobs:
             python-version: '3.12'
             architecture: x64
             rust-target: x86_64-pc-windows-msvc
-          # Windows x86 (32-bit) builds
           - os: windows-latest
             python-version: '3.8'
             architecture: x86
@@ -71,18 +67,51 @@ jobs:
             python-version: '3.12'
             architecture: x86
             rust-target: i686-pc-windows-msvc
+          # macOS builds
+          - os: macos-latest
+            python-version: '3.8'
+            architecture: x64
+            rust-target: x86_64-apple-darwin
+          - os: macos-latest
+            python-version: '3.9'
+            architecture: x64
+            rust-target: x86_64-apple-darwin
+          - os: macos-latest
+            python-version: '3.10'
+            architecture: x64
+            rust-target: x86_64-apple-darwin
+          - os: macos-latest
+            python-version: '3.11'
+            architecture: x64
+            rust-target: x86_64-apple-darwin
+          - os: macos-latest
+            python-version: '3.12'
+            architecture: x64
+            rust-target: x86_64-apple-darwin
+          # Linux builds
+          - os: ubuntu-latest
+            python-version: '3.8'
+            architecture: x64
+            rust-target: x86_64-unknown-linux-gnu
+          - os: ubuntu-latest
+            python-version: '3.9'
+            architecture: x64
+            rust-target: x86_64-unknown-linux-gnu
+          - os: ubuntu-latest
+            python-version: '3.10'
+            architecture: x64
+            rust-target: x86_64-unknown-linux-gnu
+          - os: ubuntu-latest
+            python-version: '3.11'
+            architecture: x64
+            rust-target: x86_64-unknown-linux-gnu
+          - os: ubuntu-latest
+            python-version: '3.12'
+            architecture: x64
+            rust-target: x86_64-unknown-linux-gnu
 
     steps:
       - uses: actions/checkout@v4
-
-      - name: Install macOS dependencies
-        if: runner.os == 'macOS'
-        run: |
-          brew install gettext
-          brew link gettext --force
-          echo "LDFLAGS=-L/usr/local/opt/gettext/lib" >> $GITHUB_ENV
-          echo "CPPFLAGS=-I/usr/local/opt/gettext/include" >> $GITHUB_ENV
-          echo "/usr/local/opt/gettext/bin" >> $GITHUB_PATH
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -106,25 +135,32 @@ jobs:
           cd roll_regression/rust
           cargo build --release --target ${{ matrix.rust-target }}
           cd ../..
-          # Copy the DLL to both locations
-          Copy-Item "roll_regression/rust/target/${{ matrix.rust-target }}/release/*.dll" -Destination "roll_regression/rust/target/release/"
-          Copy-Item "roll_regression/rust/target/${{ matrix.rust-target }}/release/*.dll" -Destination "roll_regression/"
-          # List files for debugging
-          echo "Contents of roll_regression/rust/target/release:"
-          Get-ChildItem roll_regression/rust/target/release
-          echo "Contents of roll_regression:"
+          New-Item -ItemType Directory -Force -Path "roll_regression"
+          Copy-Item -Force "roll_regression/rust/target/${{ matrix.rust-target }}/release/*.dll" -Destination "roll_regression/"
+          echo "Contents of roll_regression directory:"
           Get-ChildItem roll_regression
+
+      - name: Build Rust Binary (Unix)
+        if: runner.os != 'Windows'
+        run: |
+          cd roll_regression/rust
+          cargo build --release --target ${{ matrix.rust-target }}
+          cd ../..
+          mkdir -p roll_regression
+          if [ "${{ runner.os }}" = "macOS" ]; then
+            cp roll_regression/rust/target/${{ matrix.rust-target }}/release/*.dylib roll_regression/
+          else
+            cp roll_regression/rust/target/${{ matrix.rust-target }}/release/*.so roll_regression/
+          fi
+          echo "Contents of roll_regression directory:"
+          ls -la roll_regression
 
       - name: Build wheels
         env:
           CARGO_TARGET_DIR: "./target"
           RUSTFLAGS: "-C target-feature=+crt-static"
         run: |
-          # Build wheel
           python setup.py bdist_wheel
-          # List contents for debugging
-          echo "Contents of dist directory:"
-          Get-ChildItem dist
 
       - name: Store wheels
         uses: actions/upload-artifact@v3
@@ -132,7 +168,7 @@ jobs:
           name: wheels-${{ matrix.os }}-${{ matrix.python-version }}-${{ matrix.architecture }}
           path: |
             dist/*.whl
-            !dist/*-none-any.whl  # Exclude pure Python wheels
+            !dist/*-none-any.whl
 
   publish:
     needs: build_wheels
